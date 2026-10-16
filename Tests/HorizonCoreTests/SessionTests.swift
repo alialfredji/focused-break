@@ -1,0 +1,122 @@
+import XCTest
+@testable import HorizonCore
+
+final class SessionTests: XCTestCase {
+    func testConfigurableProtectionAndMinimumRestLength() {
+        var s = Session()
+        s.start(focus: 3,rest: 10,now: 0,minimumBreak: 30)
+        XCTAssertEqual(s.restDuration,30)
+        s.tick(now: 3)
+        XCTAssertEqual(s.breakLockRemaining(now: 3),30)
+        XCTAssertEqual(s.breakLockRemaining(now: 32.9),1)
+        XCTAssertEqual(s.breakLockRemaining(now: 33),0)
+        s.start(focus: 3,rest: 20,now: 40,minimumBreak: .infinity)
+        XCTAssertEqual(s.minimumBreakDuration,5)
+        s.start(focus: 3,rest: 20,now: 40,minimumBreak: 0)
+        XCTAssertEqual(s.minimumBreakDuration,5)
+        s.start(focus: 3,rest: 20,now: 40,minimumBreak: 1000)
+        XCTAssertEqual(s.minimumBreakDuration,300)
+    }
+    func testSleepPauseDoesNotConsumeProtection() {
+        var s = Session()
+        s.start(focus: 3,rest: 30,now: 0,minimumBreak: 10)
+        s.takeBreak(now: 1)
+        s.pause(now: 3)
+        XCTAssertEqual(s.breakLockRemaining(now: 100),8)
+        s.resume(now: 100)
+        XCTAssertEqual(s.breakLockRemaining(now: 107),1)
+        XCTAssertEqual(s.breakLockRemaining(now: 108),0)
+    }
+    func testBreakProtectionUsesElapsedTimeAndResetsForEachBreak() {
+        var s = Session()
+        s.start(focus: 3,rest: 20,now: 0,demo: true)
+        XCTAssertEqual(s.breakLockRemaining(now: 2),0)
+        s.tick(now: 3)
+        XCTAssertEqual(s.phase,.rest)
+        XCTAssertEqual(s.breakLockRemaining(now: 3),5)
+        XCTAssertEqual(s.breakLockRemaining(now: 7.9),1)
+        XCTAssertEqual(s.breakLockRemaining(now: 8),0)
+        s.tick(now: 23)
+        XCTAssertEqual(s.phase,.complete)
+        XCTAssertEqual(s.breakLockRemaining(now: 23),0)
+        s.start(focus: 30,rest: 20,now: 24)
+        s.takeBreak(now: 25)
+        XCTAssertEqual(s.breakLockRemaining(now: 25),5)
+    }
+    func testOverlayOnlyDuringUnpausedBreakAndRestartRequiresStart() {
+        var s = Session()
+        s.start(focus: 10,rest: 20,now: 0)
+        s.tick(now: 9)
+        XCTAssertFalse(s.showsDesktopEffect)
+        s.tick(now: 10)
+        XCTAssertTrue(s.showsDesktopEffect)
+        s.pause(now: 15)
+        XCTAssertFalse(s.showsDesktopEffect)
+        s.resume(now: 100)
+        XCTAssertTrue(s.showsDesktopEffect)
+        s.tick(now: 115)
+        XCTAssertEqual(s.phase,.complete)
+        XCTAssertFalse(s.showsDesktopEffect)
+        s.tick(now: 1000)
+        XCTAssertEqual(s.phase,.complete)
+        s.start(focus: 60,rest: 10,now: 1000)
+        XCTAssertEqual(s.phase,.focus)
+        XCTAssertFalse(s.showsDesktopEffect)
+    }
+    func testFullCycleStartsFullBreakAndDoesNotRestartWork() {
+        var s = Session()
+        s.start(focus: 20, rest: 10, now: 100, demo: true)
+        s.tick(now: 111)
+        XCTAssertEqual(s.remaining, 9)
+        s.tick(now: 125)
+        XCTAssertEqual(s.phase, .rest)
+        XCTAssertEqual(s.remaining, 10)
+        s.tick(now: 135)
+        XCTAssertEqual(s.phase, .complete)
+        s.tick(now: 200)
+        XCTAssertEqual(s.phase, .complete)
+    }
+    func testPauseDoesNotCountPausedTime() {
+        var s = Session()
+        s.start(focus: 60, rest: 10, now: 0)
+        s.pause(now: 15)
+        s.tick(now: 1000)
+        XCTAssertEqual(s.remaining, 45)
+        s.resume(now: 1000)
+        s.tick(now: 1010)
+        XCTAssertEqual(s.remaining, 35)
+    }
+    func testEarlyBreakAndStopClearSession() {
+        var s = Session()
+        s.start(focus: 60, rest: 12, now: 0)
+        s.pause(now: 3)
+        s.takeBreak(now: 100)
+        XCTAssertFalse(s.isPaused)
+        XCTAssertEqual(s.remaining, 12)
+        s.stop()
+        XCTAssertEqual(s.phase, .ready)
+        XCTAssertFalse(s.isActive)
+        XCTAssertFalse(s.isDemo)
+    }
+    func testBoundaryPauseAndInvalidDurations() {
+        var s = Session()
+        s.start(focus: -1, rest: .infinity, now: 0)
+        XCTAssertEqual(s.focusDuration, 1)
+        XCTAssertEqual(s.restDuration, 300)
+        s.pause(now: 1)
+        XCTAssertEqual(s.phase, .rest)
+        XCTAssertTrue(s.isPaused)
+        s.resume(now: 2)
+        s.tick(now: 302)
+        XCTAssertEqual(s.phase, .complete)
+    }
+    func testEarlyAndRepeatedTicksDoNotChangeElapsed() {
+        var s = Session()
+        s.start(focus: 60, rest: 5, now: 10)
+        s.tick(now: 10)
+        XCTAssertEqual(s.elapsed, 0)
+        s.tick(now: 20)
+        s.tick(now: 20)
+        XCTAssertEqual(s.elapsed, 10)
+    }
+}
