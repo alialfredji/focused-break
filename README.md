@@ -63,4 +63,4 @@ Protected video may appear blank, and effects can vary across multiple displays 
 
 [Report a bug or suggest an improvement](https://github.com/alialfredji/focused-break/issues/new/choose).
 
-For code changes, see the [development guide](docs/DEVELOPMENT.md). For reuse, see [artwork and licensing](docs/ARTWORK.md).
+Want to work on the app? Follow the [developer setup](docs/DEVELOPMENT.md#clone-test-and-run) for cloning, running, making changes, and opening a pull request. For reuse, see [artwork and licensing](docs/ARTWORK.md).
