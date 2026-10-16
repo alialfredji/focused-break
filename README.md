@@ -25,6 +25,8 @@ A small native Mac app that turns your break reminder into something you can see
 
 No account. No subscription. No server. Built with SwiftUI, AppKit, and Metal.
 
+![Session cycle: focus with a clear desktop, take a visible break, then choose your next session](docs/images/session-flow.svg)
+
 ## Install
 
 Requires **macOS 14 or later** and a Metal-capable Mac.
