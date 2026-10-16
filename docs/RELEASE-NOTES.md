@@ -1,4 +1,4 @@
-## Focused Break 0.7.0
+## Focused Break 0.7.1
 
 A native macOS focus timer with visible desktop break reminders.
 

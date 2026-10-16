@@ -16,13 +16,13 @@ The internal executable/package name is EventHorizon and the bundle identifier r
 4. Tag the same commit, matching the plist version exactly, and push it:
 
 ```sh
-git tag v0.7.0
-git push origin v0.7.0
+git tag v0.7.1
+git push origin v0.7.1
 ```
 
 The Release workflow tests and builds on separate Apple Silicon and Intel runners. It creates ad-hoc-signed ZIPs, drag-to-Applications DMGs, and SHA-256 checksum files. The publication job runs only after both builds succeed. It publishes a GitHub Release using the tag and release-notes file, marks it latest, and uploads all assets. Asset names stay stable so README latest-download links keep working.
 
-To package locally: `RELEASE_TAG=v0.7.0 bash scripts/package-release.sh`. Local packaging produces only the host architecture. Use a new version tag for a new release; do not overwrite published versions.
+To package locally: `RELEASE_TAG=v0.7.1 bash scripts/package-release.sh`. Local packaging produces only the host architecture. Use a new version tag for a new release; do not overwrite published versions.
 
 GitHub Actions uses its scoped `GITHUB_TOKEN`; no personal token or signing certificate is needed. The standard macOS runner labels are documented by [GitHub](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
 

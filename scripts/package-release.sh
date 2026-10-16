@@ -13,7 +13,7 @@ EVENT_HORIZON_SIGNING_IDENTITY=- bash scripts/build.sh
 APP="$PROJECT_DIR/dist/Focused Break.app"
 codesign --force --deep --sign - --timestamp=none "$APP"
 codesign --verify --deep --strict "$APP"
-lipo -verify_arch "$ARCH" "$APP/Contents/MacOS/EventHorizon"
+lipo "$APP/Contents/MacOS/EventHorizon" -verify_arch "$ARCH"
 OUTPUT="$PROJECT_DIR/dist/release"
 mkdir -p "$OUTPUT"
 NAME="Focused-Break-macOS-$ARCH"
